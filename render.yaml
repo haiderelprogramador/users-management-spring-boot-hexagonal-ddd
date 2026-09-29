@@ -1,0 +1,33 @@
+# Blueprint de Render (opcional): Render > New > Blueprint > seleccionar este repo.
+# Tambien se puede crear el servicio a mano: New > Web Service > Docker.
+# Los valores con sync: false se piden en el panel de Render (no se guardan en Git).
+services:
+  - type: web
+    name: users-management
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /v3/api-docs
+    envVars:
+      - key: DB_ENGINE
+        value: postgresql
+      - key: DB_SSL_MODE
+        value: require
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_ADDRESS
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

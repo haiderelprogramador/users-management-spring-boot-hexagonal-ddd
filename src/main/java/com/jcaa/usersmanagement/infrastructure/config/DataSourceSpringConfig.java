@@ -1,6 +1,7 @@
 package com.jcaa.usersmanagement.infrastructure.config;
 
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.config.DatabaseConfig;
+import com.jcaa.usersmanagement.infrastructure.adapter.persistence.config.DatabaseEngine;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
@@ -13,13 +14,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class DataSourceSpringConfig {
 
+  private static final String PROP_DB_ENGINE   = "${db.engine:mysql}";
   private static final String PROP_DB_HOST     = "${db.host}";
   private static final String PROP_DB_PORT     = "${db.port}";
   private static final String PROP_DB_NAME     = "${db.name}";
   private static final String PROP_DB_USERNAME = "${db.username}";
   private static final String PROP_DB_PASSWORD = "${db.password}";
+  private static final String PROP_DB_SSL_MODE = "${db.ssl-mode:disable}";
 
-  private static final String LOG_DATASOURCE_INIT = "[DataSourceSpringConfig] DataSource inicializado. host={} port={}";
+  private static final String LOG_DATASOURCE_INIT =
+      "[DataSourceSpringConfig] DataSource inicializado. engine={} host={} port={}";
+
+  @Value(PROP_DB_ENGINE)
+  private String dbEngine;
 
   @Value(PROP_DB_HOST)
   private String dbHost;
@@ -36,20 +43,24 @@ public class DataSourceSpringConfig {
   @Value(PROP_DB_PASSWORD)
   private String dbPassword;
 
+  @Value(PROP_DB_SSL_MODE)
+  private String dbSslMode;
+
   @Bean
   public DataSource dataSource() {
-    final DatabaseConfig config = new DatabaseConfig(dbHost, dbPort, dbName, dbUsername, dbPassword);
+    final DatabaseEngine engine = DatabaseEngine.fromString(dbEngine);
+    final DatabaseConfig config =
+        new DatabaseConfig(engine, dbHost, dbPort, dbName, dbUsername, dbPassword, dbSslMode);
 
     final HikariConfig hikariConfig = new HikariConfig();
     hikariConfig.setJdbcUrl(config.buildJdbcUrl());
     hikariConfig.setUsername(config.username());
     hikariConfig.setPassword(config.password());
-    hikariConfig.setMaximumPoolSize(10);
-    hikariConfig.setMinimumIdle(2);
+    hikariConfig.setMaximumPoolSize(5);
+    hikariConfig.setMinimumIdle(1);
     hikariConfig.setConnectionTimeout(30_000);
 
-    log.info(LOG_DATASOURCE_INIT, dbHost, dbPort);
+    log.info(LOG_DATASOURCE_INIT, engine.propertyValue(), dbHost, dbPort);
     return new HikariDataSource(hikariConfig);
   }
 }
-

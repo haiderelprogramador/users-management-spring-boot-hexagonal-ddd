@@ -1,0 +1,47 @@
+# =============================================
+# App + PostgreSQL en Docker
+# Uso:  docker compose -f docker-compose.postgres.yml up --build
+# Swagger: http://localhost:8080/swagger-ui/index.html
+# =============================================
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: users-postgres
+    environment:
+      POSTGRES_DB: crud_usuarios
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"   # 5433 en el host para no chocar con un PostgreSQL local
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./src/main/resources/schema-postgresql.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crud_usuarios"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    container_name: users-app-pg
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DB_ENGINE: postgresql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: crud_usuarios
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${PG_PASSWORD:-postgres}
+      DB_SSL_MODE: disable
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDRESS:-}
+      JWT_SECRET: ${JWT_SECRET:-ZGV2ZWxvcG1lbnQtb25seS1qd3Qtc2VjcmV0LW11c3QtYmUtcmVwbGFjZWQ=}
+
+volumes:
+  pg-data:
