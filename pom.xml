@@ -19,14 +19,17 @@
     <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Versiones de dependencias no gestionadas por el BOM de Spring Boot -->
-    <lombok.version>1.18.36</lombok.version>
+    <!-- 1.18.40+: compatible con JDK 24/25 (1.18.36 falla con 'TypeTag :: UNKNOWN') -->
+    <lombok.version>1.18.40</lombok.version>
     <mysql.connector.version>9.3.0</mysql.connector.version>
     <javamail.version>1.6.2</javamail.version>
     <bcrypt.version>0.10.2</bcrypt.version>
     <jjwt.version>0.13.0</jjwt.version>
     <!-- Declarativas: Mockito y Jacoco siguen siendo explícitas para tener control -->
     <mockito.version>5.15.2</mockito.version>
-    <jacoco.version>0.8.11</jacoco.version>
+    <jacoco.version>0.8.14</jacoco.version>
+    <!-- Byte Buddy (usado por Mockito) con soporte para JDK 25 -->
+    <byte-buddy.version>1.17.7</byte-buddy.version>
   </properties>
 
   <dependencies>
@@ -76,6 +79,14 @@
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
       <version>${mysql.connector.version}</version>
+    </dependency>
+
+    <!-- PostgreSQL JDBC Driver — versión gestionada por el BOM de Spring Boot.
+         Se usa cuando db.engine=postgresql (adaptador UserRepositoryPostgreSQL) -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
     <!-- JavaMail API (javax.mail legacy — NO migrado a jakarta.mail, intencional) -->
